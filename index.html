@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Atelier 9 Tuning Garage</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* one committed dark world: graphite glass panels over the 3D stage, amber accent */
+  --bg:#07090b; --panel:rgba(13,15,19,.82); --panel2:rgba(22,25,31,.9); --line:rgba(255,255,255,.1);
+  --text:#eef1f4; --mute:#8d96a0; --accent:#ff8a1f; --cool:#39c5d6; --ok:#35d07f;
+  --display:"Barlow Condensed","Arial Narrow","Roboto Condensed",sans-serif; --body:"Barlow","Segoe UI",system-ui,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:var(--body);font-size:14px;overflow:hidden;-webkit-tap-highlight-color:transparent}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+#stage{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+#stage:active{cursor:grabbing}
+.ui{position:fixed;z-index:5;transition:opacity .45s, transform .45s}
+.glass{background:var(--panel);border:1px solid var(--line);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-radius:10px}
+.lbl{font-family:var(--display);text-transform:uppercase;letter-spacing:.09em;font-weight:600}
+
+/* top bar */
+#top{top:14px;left:16px;right:16px;display:flex;justify-content:space-between;align-items:flex-start;gap:12px;pointer-events:none}
+#top>*{pointer-events:auto}
+#brand{padding:9px 14px 10px;border-left:3px solid var(--accent);border-radius:4px 10px 10px 4px}
+#brand b{display:block;font-family:var(--display);font-size:21px;letter-spacing:.14em;font-weight:600;line-height:1}
+#brand span{display:block;color:var(--mute);font-size:12px;margin-top:4px}
+#actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.btn{height:38px;padding:0 13px;border-radius:9px;background:var(--panel);border:1px solid var(--line);font-family:var(--display);text-transform:uppercase;letter-spacing:.08em;font-weight:600;font-size:14px;display:inline-flex;align-items:center;gap:8px;white-space:nowrap;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);transition:background .2s,border-color .2s,color .2s}
+.btn:hover{border-color:rgba(255,255,255,.28)}
+.btn.on{color:var(--accent);border-color:rgba(255,138,31,.6)}
+.btn.cta{background:var(--accent);color:#15100a;border-color:var(--accent)}
+.btn.cta:hover{background:#ffa043}
+.btn svg{width:17px;height:17px;flex:none}
+
+/* category rail + option panel */
+#rail{left:16px;top:calc(50% - 8px);transform:translateY(-50%);display:flex;flex-direction:column;padding:5px;gap:1px;max-height:calc(100vh - 196px);overflow-y:auto;scrollbar-width:none}
+#rail::-webkit-scrollbar{display:none}
+#rail button{width:74px;flex:none;padding:6px 2px 5px;border-radius:8px;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--mute);font-family:var(--display);text-transform:uppercase;letter-spacing:.07em;font-size:12.5px;font-weight:600;transition:background .2s,color .2s}
+#rail button svg{width:20px;height:20px}
+#rail button:hover{color:var(--text);background:rgba(255,255,255,.05)}
+#rail button.on{color:#15100a;background:var(--accent)}
+#panel{left:116px;top:calc(50% - 8px);transform:translateY(-50%);width:292px;max-height:min(calc(100vh - 196px),600px);display:flex;flex-direction:column;opacity:0;pointer-events:none}
+#panel.open{opacity:1;pointer-events:auto}
+#panel header{display:flex;justify-content:space-between;align-items:center;padding:12px 14px 10px;border-bottom:1px solid var(--line)}
+#panel header h2{margin:0;font-family:var(--display);font-size:19px;letter-spacing:.1em;text-transform:uppercase;font-weight:600}
+#panel header button{width:28px;height:28px;border-radius:7px;color:var(--mute);font-size:18px;line-height:1}
+#panel header button:hover{background:rgba(255,255,255,.08);color:var(--text)}
+#pbody{padding:12px 14px 14px;overflow-y:auto;display:flex;flex-direction:column;gap:14px}
+.grp>h3{margin:0 0 7px;font-family:var(--display);font-size:12.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--mute);font-weight:600}
+.sw{display:grid;grid-template-columns:repeat(6,1fr);gap:7px}
+.sw button{aspect-ratio:1;border-radius:50%;border:2px solid transparent;position:relative;box-shadow:inset 0 0 0 1px rgba(255,255,255,.14)}
+.sw button::after{content:"";position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle at 32% 28%,rgba(255,255,255,.55),rgba(255,255,255,0) 42%),radial-gradient(circle at 70% 80%,rgba(0,0,0,.45),rgba(0,0,0,0) 60%)}
+.sw button.on{border-color:var(--accent);box-shadow:0 0 0 2px rgba(255,138,31,.25)}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{flex:1 1 auto;min-width:78px;padding:8px 9px;border-radius:8px;background:rgba(255,255,255,.045);border:1px solid var(--line);font-size:13px;font-weight:500;text-align:left;line-height:1.2;transition:background .2s,border-color .2s}
+.seg button small{display:block;color:var(--mute);font-size:11.5px;font-weight:400;margin-top:2px}
+.seg button:hover{background:rgba(255,255,255,.09)}
+.seg button.on{border-color:var(--accent);background:rgba(255,138,31,.13)}
+.seg button.on small{color:#e7b98c}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.cards button{border-radius:9px;background:rgba(255,255,255,.045);border:1px solid var(--line);padding:8px 4px 7px;display:flex;flex-direction:column;align-items:center;gap:5px;font-size:12px;font-weight:500}
+.cards button svg{width:58px;height:58px}
+.cards button.on{border-color:var(--accent);background:rgba(255,138,31,.13)}
+.sl{display:grid;grid-template-columns:22px 1fr;align-items:center;gap:8px;margin-top:6px;color:var(--mute);font-size:12px}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:10px;border-radius:6px;background:#333;outline-offset:4px}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:#fff;border:2px solid #111;box-shadow:0 1px 4px rgba(0,0,0,.6)}
+input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:#fff;border:2px solid #111}
+#hexv{font-variant-numeric:tabular-nums;color:var(--text)}
+.note{color:var(--mute);font-size:12px;line-height:1.45;margin:0}
+.note.warn{color:#ffb265}
+.wide{width:100%;justify-content:center;margin-bottom:8px}
+.parts{display:flex;flex-direction:column;gap:5px}
+.parts button{display:flex;justify-content:space-between;gap:10px;padding:7px 9px;border-radius:7px;background:rgba(255,255,255,.045);border:1px solid var(--line);font-size:12.5px;text-align:left}
+.parts button span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.parts button i{font-style:normal;color:var(--mute);flex:none}
+.parts button.on{border-color:var(--accent);background:rgba(255,138,31,.13)}
+.parts button.on i{color:var(--accent)}
+body.drop #stage{outline:3px dashed var(--accent);outline-offset:-10px}
+
+/* bottom dock */
+#dock{left:50%;bottom:14px;transform:translateX(-50%);max-width:calc(100vw - 32px);display:flex;flex-direction:column;gap:8px;align-items:center}
+.row{display:flex;gap:6px;padding:6px;max-width:100%;overflow-x:auto;scrollbar-width:none}
+.row::-webkit-scrollbar{display:none}
+.chip{height:32px;padding:0 11px;border-radius:7px;font-family:var(--display);text-transform:uppercase;letter-spacing:.07em;font-size:13px;font-weight:600;color:var(--mute);white-space:nowrap;display:inline-flex;align-items:center;gap:6px;transition:background .2s,color .2s}
+.chip:hover{color:var(--text);background:rgba(255,255,255,.07)}
+.chip.on{color:var(--accent);background:rgba(255,138,31,.14)}
+.chip.hold:active{background:var(--accent);color:#15100a}
+.sep{width:1px;background:var(--line);margin:4px 3px;flex:none}
+#tach{width:74px;height:6px;border-radius:3px;background:rgba(255,255,255,.12);overflow:hidden;align-self:center;flex:none}
+#tach i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--cool),var(--accent) 70%,#ff3b2f)}
+#rpmv{font-family:var(--display);font-size:13px;color:var(--mute);min-width:62px;align-self:center;font-variant-numeric:tabular-nums;letter-spacing:.05em}
+
+/* menus, toast, captions */
+.menu{position:fixed;z-index:8;min-width:210px;padding:6px;display:none;flex-direction:column;gap:2px}
+.menu.open{display:flex}
+.menu button{padding:9px 10px;border-radius:7px;text-align:left;font-size:13.5px}
+.menu button:hover{background:rgba(255,255,255,.08)}
+.menu button.on{color:var(--accent)}
+.menu .mh{padding:6px 10px 3px;color:var(--mute);font-size:11.5px}
+#toast{left:50%;top:70px;transform:translateX(-50%) translateY(-8px);padding:9px 14px;font-size:13px;opacity:0;pointer-events:none;z-index:9;max-width:calc(100vw - 32px);text-align:center}
+#toast.show{opacity:1;transform:translateX(-50%)}
+#bars i{position:fixed;left:0;right:0;height:0;background:#000;z-index:4;transition:height .7s cubic-bezier(.6,0,.2,1)}
+#bars i:first-child{top:0}#bars i:last-child{bottom:0}
+#cap{left:5vw;bottom:calc(9vh + 26px);opacity:0;pointer-events:none;z-index:6}
+#cap b{display:block;font-family:var(--display);font-size:clamp(26px,4.2vw,50px);letter-spacing:.12em;text-transform:uppercase;font-weight:600;line-height:1}
+#cap span{display:block;color:#c6ccd3;font-size:clamp(13px,1.4vw,17px);margin-top:8px;letter-spacing:.04em}
+#cap.show{opacity:1}
+#exitc{right:18px;top:calc(9vh + 14px);opacity:0;pointer-events:none;z-index:7}
+#sheet{right:16px;top:50%;transform:translateY(-50%) translateX(20px);width:286px;max-height:66vh;opacity:0;pointer-events:none;display:flex;flex-direction:column}
+#sheet h2{margin:0;padding:13px 15px 4px;font-family:var(--display);font-size:20px;letter-spacing:.1em;text-transform:uppercase;font-weight:600}
+#sheet p{margin:0;padding:0 15px 10px;color:var(--mute);font-size:12.5px;border-bottom:1px solid var(--line)}
+#sheet dl{margin:0;padding:8px 15px 13px;overflow-y:auto;display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:13px}
+#sheet dt{color:var(--mute)}#sheet dd{margin:0;text-align:right;font-weight:500}
+#sheet dd.m{color:#ffb265}
+#load{position:fixed;inset:0;z-index:20;background:#050607;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;transition:opacity .8s}
+#load b{font-family:var(--display);font-size:30px;letter-spacing:.3em;font-weight:600}
+#load span{color:var(--mute);font-size:13px}
+#load.err span{color:#ff8f80;max-width:520px;text-align:center;padding:0 20px;line-height:1.5}
+
+/* modes */
+body.cine .ui.hud{opacity:0;pointer-events:none}
+body.cine #bars i{height:9vh}
+body.cine #exitc{opacity:1;pointer-events:auto}
+body.show #rail,body.show #panel,body.show #cams,body.show #actions .hide-show{display:none}
+body.show #sheet{opacity:1;pointer-events:auto;transform:translateY(-50%)}
+body.show.cine #sheet{opacity:0;pointer-events:none}
+
+@media (max-width:820px),(max-height:620px){
+  #top{top:8px;left:8px;right:8px}
+  #brand{padding:7px 10px}#brand b{font-size:16px}#brand span{display:none}
+  .btn{height:34px;padding:0 9px;font-size:12.5px}.btn .t{display:none}.btn.cta .t{display:inline}
+  #rail{left:8px;right:8px;top:auto;bottom:104px;transform:none;flex-direction:row;overflow-x:auto;scrollbar-width:none;padding:4px}
+  #rail::-webkit-scrollbar{display:none}
+  #rail button{width:auto;min-width:62px;flex:none;padding:6px 6px 5px;font-size:11.5px}
+  #rail button svg{width:19px;height:19px}
+  #panel{left:8px;right:8px;width:auto;top:auto;bottom:166px;transform:none;max-height:34vh}
+  .sw{grid-template-columns:repeat(8,1fr)}
+  #dock{bottom:8px;gap:5px;left:8px;right:8px;transform:none;max-width:none;align-items:stretch}
+  .row{padding:4px}.chip{height:30px;padding:0 9px;font-size:12px}
+  #sheet{left:8px;right:8px;width:auto;top:auto;bottom:62px;transform:translateY(20px);max-height:30vh}
+  body.show #sheet{transform:none}
+  #cap{bottom:calc(9vh + 14px)}
+}
+@media (prefers-reduced-motion:reduce){.ui,#bars i,#load{transition:none}}
+</style>
+</head>
+<body>
+<canvas id="stage" aria-label="3D tuning garage with the Calder GT coupe"></canvas>
+<div id="bars"><i></i><i></i></div>
+
+<div id="top" class="ui hud">
+  <div id="brand" class="glass"><b>ATELIER 9</b><span id="build">Calder GT · Glacier Silver</span></div>
+  <div id="actions">
+    <button class="btn hide-show" id="bLight" aria-haspopup="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.6 10.8c.6.5 1 1.2 1.1 2h5c.1-.8.5-1.5 1.1-2A6 6 0 0 0 12 3z"/></svg><span class="t">Lighting</span></button>
+    <button class="btn" id="bQual" aria-haspopup="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 12h4M12 12h8M4 17h12M20 17h0"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="17" r="2"/></svg><span class="t">Quality</span></button>
+    <button class="btn" id="bSound" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10v4h3l5 4V6L7 10H4z"/><path id="sndw" d="M16 9a4 4 0 0 1 0 6M18.5 6.5a7.5 7.5 0 0 1 0 11"/></svg><span class="t">Sound</span></button>
+    <button class="btn hide-show" id="bPres"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M7 5l12 7-12 7V5z"/></svg><span class="t">Presentation</span></button>
+    <button class="btn cta" id="bShow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M12 3l2.6 5.6 6 .7-4.5 4.1 1.2 6L12 16.5 6.700 19.4l1.200-6L3.400 9.300l6-.700L12 3z"/></svg><span class="t" id="bShowT">Final showcase</span></button>
+  </div>
+</div>
+
+<nav id="rail" class="ui hud glass" aria-label="Customization categories"></nav>
+<section id="panel" class="ui hud glass" aria-live="polite">
+  <header><h2 id="ptitle">Paint</h2><button id="pclose" aria-label="Close panel">×</button></header>
+  <div id="pbody"></div>
+</section>
+
+<div id="dock" class="ui hud">
+  <div class="row glass" id="cams" aria-label="Camera views"></div>
+  <div class="row glass" id="ctl" aria-label="Vehicle controls"></div>
+</div>
+
+<aside id="sheet" class="ui glass" aria-label="Final configuration">
+  <h2 id="sheetH">Your Calder GT</h2><p id="sheetSub">Final configuration</p><dl id="sheetList"></dl>
+</aside>
+
+<div id="cap" class="ui"><b id="capT"></b><span id="capS"></span></div>
+<button id="exitc" class="ui btn">Skip</button>
+<div id="mLight" class="menu glass"></div>
+<div id="mQual" class="menu glass"></div>
+<div id="toast" class="ui glass" role="status"></div>
+<input type="file" id="file" accept=".glb,model/gltf-binary" hidden>
+<div id="load"><b>ATELIER 9</b><span id="loadT">Building the garage…</span></div>
+
+<script src="js/engine.js"></script>
+<script src="js/carbody.js"></script>
+<script src="js/car.js"></script>
+<script src="js/garage.js"></script>
+<script src="js/gltf.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
